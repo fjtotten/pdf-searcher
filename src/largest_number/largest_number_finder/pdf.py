@@ -14,10 +14,15 @@ def find_largest_number(fileName):
 
     max = -1
     numFound = False
+    # We use currentSet to understand whether a currentValue was actually seen.
+    # It is possible for the current number to be less than 0, meaning a default
+    # value for current is not a reliable indicator.
+    current = -1
+    currentSet = False
     for p in reader.pages:
         # Search each page for the maximum number. 
         # Note: this does not find numbers split across pages.
-        n, found = find_largest_number_in_text(p.extract_text())
+        n, found, current, currentSet = find_largest_number_in_text(p.extract_text(), current, currentSet)
         if found:
             if n > max or not numFound:
                 max = n
@@ -25,16 +30,13 @@ def find_largest_number(fileName):
     return max, numFound
 
 # find_largest_number returns the largest number found in the text
-def find_largest_number_in_text(text):
+def find_largest_number_in_text(text, current, currentSet):
     words = text.split()
 
-    # We use maxSet and currentSet to understand whether a value was actually seen.
-    # It is possible for the maximum number to be less than 0, meaning a default
-    # value for max and current is not a reliable indicator.
+    # Like currentSet, we use maxSet to determine if a max value has been set for this page
+    # instead of using max == -1 to imply that it is unset.
     max = -1
     maxSet = False
-    current = -1
-    currentSet = False
     for word in words:
         try:
             current = locale.atof(word)
@@ -54,7 +56,7 @@ def find_largest_number_in_text(text):
         if current > max or not maxSet:
             max = current
             maxSet = True
-    return max, maxSet
+    return max, maxSet, current, currentSet
 
 # getUnitOfMagnitude checks common units of magnitude up to 1 trillion
 def getUnitOfMagnitude(word):
